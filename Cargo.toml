@@ -1,0 +1,19 @@
+[package]
+name = "compose_errors"
+version = "0.1.0"
+authors = ["Dom Crossley <dom@habito.com>"]
+edition = "2018"
+
+[dependencies]
+syn = { version = "1.0.14", features = ["full", "visit-mut", "extra-traits"] }
+proc-macro2 = "1.0.8"
+quote = "1.0.2"
+
+[lib]
+name = "compose_errors"
+path = "src/lib/compose_errors.rs"
+proc-macro = true
+
+[[bin]]
+name = "compose_errors_example"
+path = "src/bin/main.rs"
