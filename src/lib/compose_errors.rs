@@ -20,7 +20,7 @@ pub fn compose_errors_fn(args: TokenStream, items: TokenStream) -> TokenStream {
     //This attribute can only be used in the same places that the `derive`
     //keyword can be used so we can cheat and parse the token stream
     //as a DeriveInput.
-    let parsed_items = parse_macro_input!(items as DeriveInput);
+    let parsed_items = parse_macro_input!(items as parse::DeclEnum);
     let parsed_args = parse_macro_input!(args as parse::ComposeErrorsAttribute);
 
     eprintln!("ARGS: {:?}", parsed_items);

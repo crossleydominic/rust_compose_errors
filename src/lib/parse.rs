@@ -3,6 +3,39 @@ use crate::either;
 use syn::{Path,Meta, Lit, PathArguments, Error};
 use syn::parse::{ParseStream,Result};
 
+#[derive(Debug, Clone)]
+pub struct DeclEnum {
+    pub attrs: Vec<syn::Attribute>,
+    pub vis: syn::Visibility,
+    pub ident: syn::Ident,
+    pub generics: syn::Generics,
+    pub data: syn::DataEnum
+}
+
+impl DeclEnum {
+    fn parse(input: ParseStream) -> Result<Self> {
+
+        let i: syn::DeriveInput = syn::parse::Parse::parse(input)?;
+
+        match i.data {
+            syn::Data::Enum(e) => Result::Ok(DeclEnum {
+                attrs: i.attrs,
+                vis: i.vis,
+                ident: i.ident,
+                generics: i.generics,
+                data: e
+            }),
+            _ => Result::Err(Error::new(input.span(), "Composing of errors only valid on Enums"))
+        }
+    }
+}
+
+impl syn::parse::Parse for DeclEnum {
+    fn parse(input: ParseStream)-> Result<Self> {
+        return DeclEnum::parse(input);
+    }
+}
+
 #[derive(Debug)]
 pub struct ComposeErrorsAttribute {
     pub prefix: PrefixOptions,

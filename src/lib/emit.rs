@@ -8,10 +8,10 @@ use parse::*;
 
 use quote::{quote, ToTokens};
 
-pub fn emit_composed_errors(args: ComposeErrorsAttribute, items: syn::DeriveInput) -> TokenStream {
-    let ctrs = build_constructors(args, &items);
-    let new_item = splice_constructors(ctrs.clone(), items.clone());
-    let new_froms = write_froms(ctrs, items);
+pub fn emit_composed_errors(args: ComposeErrorsAttribute, declenum: DeclEnum) -> TokenStream {
+    let ctrs = build_constructors(args, &declenum);
+    let new_item = splice_constructors(ctrs.clone(), declenum.clone());
+    let new_froms = write_froms(ctrs, declenum);
     let expanded = quote! {
         #new_item
     };
@@ -23,11 +23,11 @@ pub fn emit_composed_errors(args: ComposeErrorsAttribute, items: syn::DeriveInpu
     return xxx;
 }
 
-fn write_froms(new_ctrs: Vec<(syn::Path, syn::Variant)>, items: syn::DeriveInput) -> TokenStream{
+fn write_froms(new_ctrs: Vec<(syn::Path, syn::Variant)>, declenum: DeclEnum) -> TokenStream{
 
     let streams = new_ctrs.iter().map(|(p, ctr)| {
         let error_type_name = p;
-        let target_type_name : syn::Ident = items.ident.clone();
+        let target_type_name : syn::Ident = declenum.ident.clone();
         let variant_constructor_name = ctr.ident.clone();
 
         let from = quote! {
@@ -44,33 +44,24 @@ fn write_froms(new_ctrs: Vec<(syn::Path, syn::Variant)>, items: syn::DeriveInput
     return std::iter::FromIterator::from_iter(streams);
 }
 
-fn splice_constructors(new_ctrs: Vec<(syn::Path, syn::Variant)>, items: syn::DeriveInput) -> syn::DeriveInput {
-    let new_items : syn::DeriveInput = match items.data {
-        syn::Data::Enum(mut e) => {
-            let mut vs = e.variants;
-            vs.extend(new_ctrs.clone().iter().map(|(_,v)| v.clone()));
+fn splice_constructors(new_ctrs: Vec<(syn::Path, syn::Variant)>, declenum: DeclEnum) -> syn::DeriveInput {
+    let mut vs = declenum.data.variants;
+    vs.extend(new_ctrs.clone().iter().map(|(_,v)| v.clone()));
 
-            let i = syn::DeriveInput {
-                attrs: items.attrs,
-                vis: items.vis,
-                ident: items.ident,
-                generics: items.generics,
-                data: syn::Data::Enum(syn::DataEnum { variants: vs, ..e })
-            };
-
-            i
-        },
-
-        //TODO: move this to parsing!
-        _ => panic!("Unsupported Struct or Union")
+    let x = syn::DeriveInput {
+        attrs: declenum.attrs,
+        vis: declenum.vis,
+        ident: declenum.ident,
+        generics: declenum.generics,
+        data: syn::Data::Enum(syn::DataEnum { variants: vs, ..declenum.data })
     };
 
-    return new_items;
+    x
 }
 
-fn build_constructors(args: ComposeErrorsAttribute, items: &syn::DeriveInput) -> Vec<(syn::Path,syn::Variant)> {
+fn build_constructors(args: ComposeErrorsAttribute, declenum: &DeclEnum) -> Vec<(syn::Path,syn::Variant)> {
     let prefix = match &args.prefix {
-        PrefixOptions::TypeNamePrefix => items.ident.to_string(),
+        PrefixOptions::TypeNamePrefix => declenum.ident.to_string(),
         PrefixOptions::CustomPrefix(p) => p.clone(),
     };
 
