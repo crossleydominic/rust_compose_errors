@@ -3,7 +3,7 @@ use crate::either;
 use syn::{Path,Meta, Lit, PathArguments, Error};
 use syn::parse::{ParseStream,Result};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct DeclEnum {
     pub attrs: Vec<syn::Attribute>,
     pub vis: syn::Visibility,
