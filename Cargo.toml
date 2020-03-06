@@ -5,9 +5,12 @@ authors = ["Dom Crossley <dom@habito.com>"]
 edition = "2018"
 
 [dependencies]
-syn = { version = "1.0.14", features = ["full", "visit-mut", "extra-traits"] }
+syn = { version = "1.0.16", features = ["full", "visit-mut", "extra-traits"] }
 proc-macro2 = "1.0.8"
 quote = "1.0.2"
+
+[dev-dependencies]
+compiletest_rs = "0.4.0"
 
 [lib]
 name = "compose_errors"
@@ -16,4 +19,4 @@ proc-macro = true
 
 [[bin]]
 name = "compose_errors_example"
-path = "src/bin/main.rs"
+path = "src/bin/example.rs"

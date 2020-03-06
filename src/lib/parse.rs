@@ -2,6 +2,7 @@ use proc_macro2::Span;
 use crate::either;
 use syn::{Path,Meta, Lit, PathArguments, Error};
 use syn::parse::{ParseStream,Result};
+use quote::{quote};
 
 #[derive(Debug)]
 pub struct DeclEnum {
@@ -35,6 +36,51 @@ impl syn::parse::Parse for DeclEnum {
         return DeclEnum::parse(input);
     }
 }
+
+/*(
+#[cfg(test)]
+mod DeclEnumTests {
+    use super::*;
+
+    fn parse<T: syn::parse::Parse>(input: proc_macro2::TokenStream) -> Result<T> {
+        syn::parse::<T>(proc_macro::TokenStream::from(input))
+    }
+
+    #[test]
+    fn try_parse_struct() {
+        let p = parse::<DeclEnum>(quote!{ });
+
+        assert_eq!(1,1);
+
+
+        /*let tks: proc_macro::TokenStream = proc_macro::TokenStream::from(quote! {
+            enum T { A, B }
+        });*/
+
+        /*
+        let i : proc_macro::TokenStream = unimplemented!();
+
+        match syn::parse::<DeclEnum>(i) {
+            syn::Result::Ok(data) => data,
+            syn::Result::Err(err) => {
+                unimplemented!();
+                //return $crate::export::TokenStream::from(err.to_compile_error());
+            }
+        };
+        //let x: proc_macro::TokenStream = unimplemented!();
+        //let result: DeclEnum = syn::parse_macro_input!(x);
+
+        eprintln!("HNIVCNSOI"); */
+
+    }
+
+    #[test]
+    fn test_add() {
+        eprintln!("1***********************\r\n***************");
+        assert_eq!(2,2);
+    }
+
+} */
 
 #[derive(Debug)]
 pub struct ComposeErrorsAttribute {
