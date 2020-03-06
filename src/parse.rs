@@ -2,7 +2,6 @@ use proc_macro2::Span;
 use crate::either;
 use syn::{Path,Meta, Lit, PathArguments, Error};
 use syn::parse::{ParseStream,Result};
-use quote::{quote};
 
 #[derive(Debug)]
 pub struct DeclEnum {
@@ -112,7 +111,7 @@ impl ComposeErrorsAttribute {
 
     #[doc(hidden)]
     fn parse_prefix(opts: &Vec<Meta>, span: Span) -> Result<PrefixOptions>{
-        let (lefts, rights) = either::partition_eithers_moving_all(opts.iter().filter_map(|x|
+        let (lefts, rights) = either::into_partition(opts.iter().filter_map(|x|
             match x {
                 Meta::NameValue(nv) => Some(nv),
                 _ => None

@@ -6,7 +6,7 @@ use proc_macro2::Span;
 use crate::parse;
 use parse::*;
 
-use quote::{quote, ToTokens};
+use quote::{quote};
 
 pub fn emit_composed_errors(args: ComposeErrorsAttribute, declenum: DeclEnum) -> TokenStream {
     let ctrs = build_constructors(&args, &declenum);
@@ -103,7 +103,7 @@ fn build_constructors(args: &ComposeErrorsAttribute, declenum: &DeclEnum) -> Vec
 
 fn sanitize_type_name(path: &syn::Path) -> String {
     //TODO: Clean this up.
-    let mut st = String::new();
+    let st = String::new();
     return path.segments.iter().fold(st, |mut acc, curr| {
         acc.push_str("_");
         acc.push_str(&curr.ident.to_string());
