@@ -1,11 +1,11 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use syn::{parse_macro_input};
+use syn::parse_macro_input;
 
 mod either;
-mod parse;
 mod emit;
+mod parse;
 
 #[proc_macro_attribute]
 pub fn compose_errors_fn(args: TokenStream, items: TokenStream) -> TokenStream {
@@ -14,4 +14,3 @@ pub fn compose_errors_fn(args: TokenStream, items: TokenStream) -> TokenStream {
 
     return emit::emit_composed_errors(parsed_args, parsed_items);
 }
-

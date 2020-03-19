@@ -6,7 +6,7 @@ use proc_macro2::Span;
 use crate::parse;
 use parse::*;
 
-use quote::{quote};
+use quote::quote;
 
 pub fn emit_composed_errors(args: ComposeErrorsAttribute, declenum: DeclEnum) -> TokenStream {
     let ctrs = build_constructors(&args, &declenum);
@@ -19,8 +19,7 @@ pub fn emit_composed_errors(args: ComposeErrorsAttribute, declenum: DeclEnum) ->
     return new_items;
 }
 
-fn write_froms(new_ctrs: &Vec<(syn::Path, syn::Variant)>, declenum: &DeclEnum) -> TokenStream{
-
+fn write_froms(new_ctrs: &Vec<(syn::Path, syn::Variant)>, declenum: &DeclEnum) -> TokenStream {
     let streams = new_ctrs.iter().map(|(p, ctr)| {
         let error_type_name = p;
         let target_type_name: syn::Ident = declenum.ident.clone();
@@ -40,22 +39,31 @@ fn write_froms(new_ctrs: &Vec<(syn::Path, syn::Variant)>, declenum: &DeclEnum) -
     return std::iter::FromIterator::from_iter(streams);
 }
 
-fn splice_constructors(new_ctrs: &Vec<(syn::Path, syn::Variant)>, declenum: &DeclEnum) -> TokenStream {
+fn splice_constructors(
+    new_ctrs: &Vec<(syn::Path, syn::Variant)>,
+    declenum: &DeclEnum,
+) -> TokenStream {
     let mut vs = declenum.data.variants.clone();
-    vs.extend(new_ctrs.iter().map(|(_,v)| v.clone()));
+    vs.extend(new_ctrs.iter().map(|(_, v)| v.clone()));
 
     let new_enum = syn::DeriveInput {
         attrs: declenum.attrs.clone(),
         vis: declenum.vis.clone(),
         ident: declenum.ident.clone(),
         generics: declenum.generics.clone(),
-        data: syn::Data::Enum(syn::DataEnum { variants: vs, ..declenum.data })
+        data: syn::Data::Enum(syn::DataEnum {
+            variants: vs,
+            ..declenum.data
+        }),
     };
 
     TokenStream::from(quote! { #new_enum })
 }
 
-fn build_constructors(args: &ComposeErrorsAttribute, declenum: &DeclEnum) -> Vec<(syn::Path,syn::Variant)> {
+fn build_constructors(
+    args: &ComposeErrorsAttribute,
+    declenum: &DeclEnum,
+) -> Vec<(syn::Path, syn::Variant)> {
     let prefix = match &args.prefix {
         PrefixOptions::TypeNamePrefix => declenum.ident.to_string(),
         PrefixOptions::CustomPrefix(p) => p.clone(),

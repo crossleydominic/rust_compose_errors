@@ -1,7 +1,7 @@
-use proc_macro2::Span;
 use crate::either;
-use syn::{Path,Meta, Lit, PathArguments, Error};
-use syn::parse::{ParseStream,Result};
+use proc_macro2::Span;
+use syn::parse::{ParseStream, Result};
+use syn::{Error, Lit, Meta, Path, PathArguments};
 
 #[derive(Debug)]
 pub struct DeclEnum {
@@ -9,12 +9,11 @@ pub struct DeclEnum {
     pub vis: syn::Visibility,
     pub ident: syn::Ident,
     pub generics: syn::Generics,
-    pub data: syn::DataEnum
+    pub data: syn::DataEnum,
 }
 
 impl DeclEnum {
     fn parse(input: ParseStream) -> Result<Self> {
-
         let i: syn::DeriveInput = syn::parse::Parse::parse(input)?;
 
         match i.data {
@@ -23,15 +22,18 @@ impl DeclEnum {
                 vis: i.vis,
                 ident: i.ident,
                 generics: i.generics,
-                data: e
+                data: e,
             }),
-            _ => Result::Err(Error::new(input.span(), "Composing of errors only valid on Enums"))
+            _ => Result::Err(Error::new(
+                input.span(),
+                "Composing of errors only valid on Enums",
+            )),
         }
     }
 }
 
 impl syn::parse::Parse for DeclEnum {
-    fn parse(input: ParseStream)-> Result<Self> {
+    fn parse(input: ParseStream) -> Result<Self> {
         return DeclEnum::parse(input);
     }
 }
@@ -89,62 +91,66 @@ pub struct ComposeErrorsAttribute {
 
 impl ComposeErrorsAttribute {
     fn parse(input: ParseStream) -> Result<Self> {
-        let parsed_args : Vec<Meta> = parse_comma_seperated(input)?;
+        let parsed_args: Vec<Meta> = parse_comma_seperated(input)?;
 
         let attr = ComposeErrorsAttribute::parse_attribute_values(&parsed_args, input.span())?;
 
         return Result::Ok(attr);
-
     }
 
     #[doc(hidden)]
-    fn parse_attribute_values(opts: &Vec<Meta>, span: Span) -> Result<ComposeErrorsAttribute>{
+    fn parse_attribute_values(opts: &Vec<Meta>, span: Span) -> Result<ComposeErrorsAttribute> {
         let prefix = ComposeErrorsAttribute::parse_prefix(opts, span)?;
         let errors = ComposeErrorsAttribute::parse_errors(opts, span)?;
-        let _      = ComposeErrorsAttribute::ensure_no_lists(opts, span)?; //Don't ignore unsupported contructs
+        let _ = ComposeErrorsAttribute::ensure_no_lists(opts, span)?; //Don't ignore unsupported contructs
 
         return Result::Ok(ComposeErrorsAttribute {
             prefix: prefix,
-            error_types: errors
+            error_types: errors,
         });
     }
 
     #[doc(hidden)]
-    fn parse_prefix(opts: &Vec<Meta>, span: Span) -> Result<PrefixOptions>{
-        let (lefts, rights) = either::into_partition(opts.iter().filter_map(|x|
-            match x {
-                Meta::NameValue(nv) => Some(nv),
-                _ => None
-            }).map(|x| {
-
-                let leading_colon = x.path.leading_colon;
-                let number_of_segments = x.path.segments.len();
-                let first_path = x.path.segments.first();
-                let first_path_ident_is_prefix = first_path.map_or(false, |x| x.ident == "prefix");
-                let first_path_arg_is_none = first_path.map_or(false, |x| x.arguments == PathArguments::None);
-                let prefix_string = match x.lit {
+    fn parse_prefix(opts: &Vec<Meta>, span: Span) -> Result<PrefixOptions> {
+        let (lefts, rights) = either::into_partition(
+            opts.iter()
+                .filter_map(|x| match x {
+                    Meta::NameValue(nv) => Some(nv),
+                    _ => None,
+                })
+                .map(|x| {
+                    let leading_colon = x.path.leading_colon;
+                    let number_of_segments = x.path.segments.len();
+                    let first_path = x.path.segments.first();
+                    let first_path_ident_is_prefix =
+                        first_path.map_or(false, |x| x.ident == "prefix");
+                    let first_path_arg_is_none =
+                        first_path.map_or(false, |x| x.arguments == PathArguments::None);
+                    let prefix_string = match x.lit {
                         Lit::Str(ref st) => st.value(),
-                        _ => String::from("")
-                };
+                        _ => String::from(""),
+                    };
 
-                if leading_colon == None &&
-                    number_of_segments == 1 &&
-                    first_path_ident_is_prefix &&
-                    first_path_arg_is_none {
-
-
-
-                    return either::Either::Right(prefix_string);
-                }else{
-                    return either::Either::Left(x);
-                }
-            }));
+                    if leading_colon == None
+                        && number_of_segments == 1
+                        && first_path_ident_is_prefix
+                        && first_path_arg_is_none
+                    {
+                        return either::Either::Right(prefix_string);
+                    } else {
+                        return either::Either::Left(x);
+                    }
+                }),
+        );
 
         if lefts.len() != 0 {
             //TODO: Improve this error message!
             return Result::Err(Error::new(span, "Unknown options"));
         } else if rights.len() > 1 {
-            return Result::Err(Error::new(span, "'prefix' options specified more than once"));
+            return Result::Err(Error::new(
+                span,
+                "'prefix' options specified more than once",
+            ));
         } else if rights.len() == 0 {
             return Result::Ok(PrefixOptions::TypeNamePrefix);
         } else {
@@ -154,12 +160,14 @@ impl ComposeErrorsAttribute {
     }
 
     #[doc(hidden)]
-    fn parse_errors(opts: &Vec<Meta>, span: Span) -> Result<Vec<Path>>{
-        let paths :Vec<Path> = opts.iter().filter_map(|x|
-            match x {
+    fn parse_errors(opts: &Vec<Meta>, span: Span) -> Result<Vec<Path>> {
+        let paths: Vec<Path> = opts
+            .iter()
+            .filter_map(|x| match x {
                 Meta::Path(p) => Some(p.clone()),
-                _ => None
-            }).collect();
+                _ => None,
+            })
+            .collect();
 
         if paths.len() == 0 {
             return Result::Err(Error::new(span, "No errors to compose"));
@@ -169,22 +177,24 @@ impl ComposeErrorsAttribute {
     }
 
     #[doc(hidden)]
-    fn ensure_no_lists(opts: &Vec<Meta>, span: Span) -> Result<()>{
+    fn ensure_no_lists(opts: &Vec<Meta>, span: Span) -> Result<()> {
         if opts.iter().all(|x| match x {
             Meta::Path(_) | Meta::NameValue(_) => true,
-            Meta::List(_) => false
+            Meta::List(_) => false,
         }) {
             return Result::Ok(());
         } else {
-            return Result::Err(Error::new(span, "arguments of the form `foo(bar,...)` not supported"));
+            return Result::Err(Error::new(
+                span,
+                "arguments of the form `foo(bar,...)` not supported",
+            ));
         }
     }
 }
 
-
 impl syn::parse::Parse for ComposeErrorsAttribute {
     fn parse(input: syn::parse::ParseStream) -> syn::parse::Result<Self> {
-        return ComposeErrorsAttribute::parse(input)
+        return ComposeErrorsAttribute::parse(input);
     }
 }
 
@@ -202,7 +212,9 @@ impl Default for PrefixOptions {
 
 //Taken straight out of https://docs.rs/crate/syn/1.0.14/source/src/parse_macro_input.rs.
 //I can't the way to invoke a pre-built parser for an AttributeArgs from a ParserStream.
-fn parse_comma_seperated<T : syn::parse::Parse>(input: syn::parse::ParseStream) -> syn::Result<Vec<T>> {
+fn parse_comma_seperated<T: syn::parse::Parse>(
+    input: syn::parse::ParseStream,
+) -> syn::Result<Vec<T>> {
     let mut metas = Vec::new();
 
     loop {
@@ -218,4 +230,3 @@ fn parse_comma_seperated<T : syn::parse::Parse>(input: syn::parse::ParseStream) 
     }
     return syn::parse::Result::Ok(metas);
 }
-
