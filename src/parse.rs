@@ -1,4 +1,4 @@
-use crate::either;
+use either::Either;
 use proc_macro2::Span;
 use syn::parse::{ParseStream, Result};
 use syn::{Error, Lit, Meta, Path, PathArguments};
@@ -112,7 +112,7 @@ impl ComposeErrorsAttribute {
 
     #[doc(hidden)]
     fn parse_prefix(opts: &Vec<Meta>, span: Span) -> Result<PrefixOptions> {
-        let (lefts, rights) = either::into_partition(
+        let (lefts, rights) = Either::into_partition(
             opts.iter()
                 .filter_map(|x| match x {
                     Meta::NameValue(nv) => Some(nv),
